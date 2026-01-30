@@ -34,44 +34,89 @@
 // });
 
 // Fetch API Version
-const searchButton = document.querySelector('.search-button');
-searchButton.addEventListener('click', function() {
+// const searchButton = document.querySelector('.search-button');
+// searchButton.addEventListener('click', function() {
 
-  const inputKeyword = document.querySelector('.input-keyword');
-  fetch('https://www.omdbapi.com/?apikey=3642ab43&s=' + inputKeyword.value)
-    .then(response => response.json())
-    .then(response => {
-      if (!response.Search) {
-        console.log('No movies found');
-        alert(response.Error || 'No movies found');
-        return;
-      }
+//   const inputKeyword = document.querySelector('.input-keyword');
+//   fetch('https://www.omdbapi.com/?apikey=3642ab43&s=' + inputKeyword.value)
+//     .then(response => response.json())
+//     .then(response => {
+//       if (!response.Search) {
+//         console.log('No movies found');
+//         alert(response.Error || 'No movies found');
+//         return;
+//       }
 
-      const movies = response.Search;
-      let cards = '';
-      movies.forEach(m => cards += showCards(m));
+//       const movies = response.Search;
+//       let cards = '';
+//       movies.forEach(m => cards += showCards(m));
 
-      // tampung movies ke dalam container
-      const movieContainer = document.querySelector('.movie-container');
-      movieContainer.innerHTML = cards;
+//       // tampung movies ke dalam container
+//       const movieContainer = document.querySelector('.movie-container');
+//       movieContainer.innerHTML = cards;
       
-      // ketika tombol detail di-klik
-      const modalDetailButton = document.querySelectorAll('.modal-detail-button');
-      modalDetailButton.forEach(button => {
-        button.addEventListener('click', function() {
-          const movieId = button.dataset.movieId;
-          fetch(`https://www.omdbapi.com/?apikey=3642ab43&i=${movieId}`)
-            .then(response => response.json())
-            .then(m => {
-              const movieDetail = showMovieDetail(m);
-              const modalBody = document.querySelector('.modal-body');
-              modalBody.innerHTML = movieDetail;
-            })
-        })
-      })
-    })
+//       // ketika tombol detail di-klik
+//       const modalDetailButton = document.querySelectorAll('.modal-detail-button');
+//       modalDetailButton.forEach(button => {
+//         button.addEventListener('click', function() {
+//           const movieId = button.dataset.movieId;
+//           fetch(`https://www.omdbapi.com/?apikey=3642ab43&i=${movieId}`)
+//             .then(response => response.json())
+//             .then(m => {
+//               const movieDetail = showMovieDetail(m);
+//               const modalBody = document.querySelector('.modal-body');
+//               modalBody.innerHTML = movieDetail;
+//             })
+//         })
+//       })
+//     })
+// })
+
+// refactor with async await
+
+// Search movies
+const searchButton = document.querySelector('.search-button');
+searchButton.addEventListener('click', async function() {
+  const inputKeyword = document.querySelector('.input-keyword');
+  const movies = await getMovies(inputKeyword.value);
+  updateUI(movies);
 })
 
+function getMovies(keyword) {
+  return fetch('https://www.omdbapi.com/?apikey=3642ab43&s=' + keyword)
+    .then(response => response.json())
+    .then(response => response.Search);
+}
+
+function updateUI(movies) {
+  let cards = '';
+  movies.forEach(m => cards += showCards(m));
+  const movieContainer = document.querySelector('.movie-container');
+  movieContainer.innerHTML = cards;
+
+}
+
+// Movie detail
+// event binding
+document.addEventListener('click', async function(e) {
+  if (e.target.classList.contains('modal-detail-button')) {
+    const movieId = e.target.dataset.movieId;
+    const movieDetail = await getMovieDetail(movieId);
+
+    updateUIDetail(movieDetail);
+  }
+})
+
+function getMovieDetail(movieId) {
+  return fetch(`https://www.omdbapi.com/?apikey=3642ab43&i=${movieId}`)
+    .then(response => response.json())
+    .then(m => showMovieDetail(m));
+}
+
+function updateUIDetail(movieDetail) {
+  const modalBody = document.querySelector('.modal-body');
+  modalBody.innerHTML = movieDetail;
+}
 
 function showCards(m) {
   return `
